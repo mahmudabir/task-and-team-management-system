@@ -8,6 +8,7 @@ using Domain.Entities.Users;
 
 using Infrastructure.Database;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -290,6 +291,7 @@ public class AuthenticationController(
 
     // POST api/Auth/register
     [HttpPost("register")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Register([FromBody] User userRegistration, CancellationToken ct = default)
     {
         if (!TryValidateModel(userRegistration))
@@ -370,6 +372,7 @@ public class AuthenticationController(
 
     // POST api/Auth/force-logout
     [HttpPost("force-logout")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ForceLogout([FromBody] ForceLogoutRequest request, CancellationToken ct = default)
     {
         // This endpoint would typically be restricted to admin users or the account owner
@@ -403,6 +406,7 @@ public class AuthenticationController(
 
     // GET api/Auth/active-sessions
     [HttpGet("active-sessions")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetActiveSessions([FromQuery] string username, CancellationToken ct = default)
     {
         // This endpoint would typically be restricted to admin users or the account owner
