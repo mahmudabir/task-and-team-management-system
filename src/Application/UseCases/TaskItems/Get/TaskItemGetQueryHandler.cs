@@ -41,18 +41,18 @@ public class TaskItemGetQueryHandler(ITaskItemRepository repository, UserManager
         {
             var manager = await userManager.FindByIdAsync(userId);
             predicate = x => x.TeamId == manager.TeamId
-                          || (query.Status == null) || (x.Status == query.Status)
-                          || (query.AssignedTo == null) || (x.AssignedToUserId == query.AssignedTo)
-                          || (query.DueDate == null) || x.DueDate == query.DueDate;
+                          && ((query.Status == null) || (x.Status == query.Status)
+                                                     || (query.AssignedTo == null) || (x.AssignedToUserId == query.AssignedTo)
+                                                     || (query.DueDate == null) || x.DueDate == query.DueDate);
 
             data = await repository.GetAllPagedAsync<TaskItem>(predicate, query.Pageable, query.Sortable, true, ct);
         }
         else if (roles.Contains("Employee"))
         {
             var employee = await userManager.FindByIdAsync(userId);
-            predicate = x => x.TeamId == employee.TeamId && x.AssignedToUserId == employee.Id
-                          || (query.Status == null) || (x.Status == query.Status)
-                          || (query.DueDate == null) || x.DueDate == query.DueDate;
+            predicate = x => (x.TeamId == employee.TeamId && x.AssignedToUserId == employee.Id)
+                          && ((query.Status == null) || (x.Status == query.Status)
+                                                     || (query.DueDate == null) || x.DueDate == query.DueDate);
 
             data = await repository.GetAllPagedAsync<TaskItem>(predicate, query.Pageable, query.Sortable, true, ct);
         }
