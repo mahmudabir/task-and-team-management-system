@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Domain.Abstractions.Database.Repositories;
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 using Shared.Models.Users;
 
@@ -6,7 +9,10 @@ using Softoverse.CqrsKit.Models;
 
 namespace WebApi.Controllers.Users.Permissions;
 
-public partial class PermissionsController
+[ApiController]
+[Route("api/permissions")]
+[Authorize(Roles = "Admin")]
+public partial class PermissionsController(IRoleService roleService, IServiceProvider services) : ControllerBase
 {
     [HttpGet("roles/{roleId}/users")]
     public async Task<ActionResult<Result<List<User>>>> GetUsersInRole(string roleId, CancellationToken ct = default)

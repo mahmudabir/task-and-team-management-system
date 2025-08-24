@@ -22,10 +22,11 @@ namespace WebApi.Controllers.Tasks;
 public class TasksController(IServiceProvider services) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = "Admin,Manager,Employee")]
     public async Task<ActionResult<Result<PagedData<TaskItemViewModel>>>> Get([FromQuery] TaskItemGetQuery query,
-                                                                             [FromQuery] Pageable pageable,
-                                                                             [FromQuery] Sortable sortable,
-                                                                             CancellationToken ct = default)
+                                                                              [FromQuery] Pageable pageable,
+                                                                              [FromQuery] Sortable sortable,
+                                                                              CancellationToken ct = default)
     {
         query = query ?? new();
         query.Pageable = pageable;
@@ -40,8 +41,9 @@ public class TasksController(IServiceProvider services) : ControllerBase
     }
 
     [HttpGet("{id:long}")]
+    [Authorize(Roles = "Admin,Manager,Employee")]
     public async Task<ActionResult<Result<TaskItemViewModel>>> GetById(long id,
-                                                                      CancellationToken ct = default)
+                                                                       CancellationToken ct = default)
     {
         var executor = CqrsBuilder.Query<TaskItemGetByIdQuery, TaskItemViewModel>(services)
                                   .WithQuery(new TaskItemGetByIdQuery
@@ -55,11 +57,11 @@ public class TasksController(IServiceProvider services) : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
-    public async Task<ActionResult<Task>> Post([FromBody] TaskItem payload,
-                                                  CancellationToken cancellationToken)
+    [Authorize(Roles = "Manager")]
+    public async Task<ActionResult<Task>> Post([FromBody] TaskItemViewModel payload,
+                                               CancellationToken cancellationToken)
     {
-        var executor = CqrsBuilder.Command<TaskItemCreateCommand, Task>(services)
+        var executor = CqrsBuilder.Command<TaskItemCreateCommand, TaskItemViewModel>(services)
                                   .WithCommand(new(payload))
                                   .Build();
 
@@ -68,12 +70,12 @@ public class TasksController(IServiceProvider services) : ControllerBase
     }
 
     [HttpPut("{id:long}")]
-    [Authorize]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<Task>> Put([FromRoute] long id,
-                                                 [FromBody] TaskItem payload,
-                                                 CancellationToken cancellationToken)
+                                              [FromBody] TaskItemViewModel payload,
+                                              CancellationToken cancellationToken)
     {
-        var executor = CqrsBuilder.Command<TaskItemUpdateCommand, Task>(services)
+        var executor = CqrsBuilder.Command<TaskItemUpdateCommand, TaskItemViewModel>(services)
                                   .WithCommand(new(payload)
                                   {
                                       Id = id
@@ -84,8 +86,26 @@ public class TasksController(IServiceProvider services) : ControllerBase
         return Ok(result);
     }
 
+    [HttpPut("{id:long}/status")]
+    [Authorize(Roles = "Employee")]
+    public async Task<ActionResult<Task>> UpdateStatus([FromRoute] long id,
+                                                       [FromQuery] TaskStatus status,
+                                                       CancellationToken cancellationToken)
+    {
+        var executor = CqrsBuilder.Command<TaskItemUpdateStatusCommand, Task>(services)
+                                  .WithCommand(new(status)
+                                  {
+                                      Id = id
+                                  })
+                                  .Build();
+
+        var result = await executor.ExecuteAsync(cancellationToken);
+        return Ok(result);
+    }
+
+
     [HttpDelete("{id:long}")]
-    [Authorize]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<bool>> Delete([FromRoute] long id,
                                                  CancellationToken cancellationToken)
     {

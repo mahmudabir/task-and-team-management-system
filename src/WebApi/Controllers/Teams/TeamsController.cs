@@ -56,10 +56,10 @@ public class TeamsController(IServiceProvider services) : ControllerBase
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<Team>> Post([FromBody] Team payload,
+    public async Task<ActionResult<Team>> Post([FromBody] TeamViewModel payload,
                                                CancellationToken cancellationToken)
     {
-        var executor = CqrsBuilder.Command<TeamCreateCommand, Team>(services)
+        var executor = CqrsBuilder.Command<TeamCreateCommand, TeamViewModel>(services)
                                   .WithCommand(new(payload))
                                   .Build();
 
@@ -70,7 +70,7 @@ public class TeamsController(IServiceProvider services) : ControllerBase
     [HttpPut("{id:long}")]
     [Authorize]
     public async Task<ActionResult<Team>> Put([FromRoute] long id,
-                                              [FromBody] Team payload,
+                                              [FromBody] TeamViewModel payload,
                                               CancellationToken cancellationToken)
     {
         var executor = CqrsBuilder.Command<TeamUpdateCommand, Team>(services)

@@ -12,4 +12,6 @@ public static partial class TeamMapper
     public static partial TeamViewModel ToTeamViewModel(this Team model);
 
     public static partial List<TeamViewModel> ToTeamViewModels(this IEnumerable<Team> models);
+
+    public static partial Team ToTeam(this TeamViewModel model);
 }

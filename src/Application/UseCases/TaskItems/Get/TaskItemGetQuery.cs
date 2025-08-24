@@ -11,7 +11,10 @@ namespace Application.UseCases.TaskItems.Get;
 [Description("Search TaskItem query")]
 public class TaskItemGetQuery : IQuery
 {
-    public string? Q { get; set; }
+    public TaskStatus? Status { get; set; }
+    public string? AssignedTo { get; set; }
+    public string? TeamName { get; set; }
+    public DateOnly? DueDate { get; set; }
 
     public Pageable Pageable { get; set; }
     public Sortable Sortable { get; set; }
