@@ -1,0 +1,291 @@
+﻿using System.Reflection;
+using System.Text;
+
+using Domain.Abstractions.Database;
+using Domain.Abstractions.Database.Repositories;
+using Domain.Abstractions.Services;
+using Domain.Entities.Users;
+
+using Infrastructure.Authentication;
+using Infrastructure.Database;
+using Infrastructure.Database.Users;
+using Infrastructure.Services;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+
+using Shared.Constants;
+
+namespace Infrastructure;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration) =>
+        services
+            .AddRepositories(Assembly.GetExecutingAssembly())
+            .AddServices()
+            .AddDatabase(configuration)
+            .AddHealthChecks(configuration)
+            .AddAuthenticationInternal(configuration)
+            .AddAuthorizationInternal(configuration);
+
+    private static IServiceCollection AddServices(this IServiceCollection services)
+    {
+        services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<IHttpContextService, HttpContextService>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddRepositories(this IServiceCollection services, Assembly assembly)
+    {
+        // Find all non-abstract classes that inherit from GenericRepository
+        {
+            // Find all non-abstract classes that inherit from GenericRepository
+            var repositoryTypes = assembly.GetTypes()
+                                          .Where(type => type is
+                                                         {
+                                                             IsClass               : true,
+                                                             IsAbstract            : false,
+                                                             BaseType              : not null,
+                                                             BaseType.IsGenericType: true,
+                                                         }
+                                                      && type.BaseType.GetGenericTypeDefinition() == typeof(GenericRepository<,>));
+
+            foreach (var repositoryType in repositoryTypes)
+            {
+                // Get the specific repository interface (like IHospitalRepository, ICountryRepository)
+                var repositoryInterface = repositoryType.GetInterfaces()
+                                                        .FirstOrDefault(i => !i.IsGenericType
+                                                                          && i != typeof(IRepository<,>)
+                                                                          && i.Name.EndsWith("Repository") // To Ensure naming convention
+                                                                       );
+
+                if (repositoryInterface != null)
+                {
+                    services.AddScoped(repositoryInterface, repositoryType);
+                }
+            }
+        }
+
+        // Find all non-abstract classes that inherit from RepositoryBase
+        {
+            // Find all non-abstract classes that inherit from RepositoryBase
+            var repositoryTypes = assembly.GetTypes()
+                                          .Where(type => type is
+                                                         {
+                                                             IsClass               : true,
+                                                             IsAbstract            : false,
+                                                             BaseType              : not null,
+                                                             BaseType.IsGenericType: true,
+                                                         }
+                                                      && type.BaseType.GetGenericTypeDefinition() == typeof(RepositoryBase<,>));
+
+            foreach (var repositoryType in repositoryTypes)
+            {
+                // Get the specific repository interface (like IHospitalRepository, ICountryRepository)
+                var repositoryInterface = repositoryType.GetInterfaces()
+                                                        .FirstOrDefault(i => !i.IsGenericType
+                                                                          && i != typeof(IRepositoryBase<,>)
+                                                                          && i.Name.EndsWith("Repository") // To Ensure naming convention
+                                                                       );
+
+                if (repositoryInterface != null)
+                {
+                    services.AddScoped(repositoryInterface, repositoryType);
+                }
+            }
+        }
+
+        return services;
+    }
+
+    private static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
+    {
+        // "Environment" => "Development", "Live"
+        string connectionString = configuration["Environment"] switch
+        {
+            Environments.Development => configuration.GetConnectionString("TestDatabase")!,
+            Environments.Live => configuration.GetConnectionString("LiveDatabase")!,
+            _ => string.Empty
+        };
+
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new Exception($"Database connection string is empty. Environment: '{configuration["Environment"]}'");
+        }
+
+        services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
+        {
+            options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure();
+            });
+        });
+
+        services.AddIdentity<ApplicationUser, ApplicationRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
+
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
+
+        return services;
+    }
+
+    private static IServiceCollection AddHealthChecks(this IServiceCollection services, IConfiguration configuration)
+    {
+        // "Environment" => "Development", "Live"
+        string connectionString = configuration["Environment"] switch
+        {
+            Environments.Development => configuration.GetConnectionString("TestDatabase")!,
+            Environments.Live => configuration.GetConnectionString("LiveDatabase")!,
+            _ => string.Empty
+        };
+
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new Exception($"Database connection string is empty. Environment: '{configuration["Environment"]}'");
+        }
+
+        services
+            .AddHealthChecks()
+            .AddNpgSql(connectionString!);
+
+        return services;
+    }
+
+    private static IServiceCollection AddAuthenticationInternal(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddHttpContextAccessor();
+
+        return services;
+    }
+
+    private static IServiceCollection AddAuthorizationInternal(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Add services to the container. 
+
+        // // If you want to use authorization like [Authorize("ApiKey")] for JWT & ApiKey both with 1 Attribute
+        // services.AddAuthorization();
+        // services.AddSingleton<IAuthorizationPolicyProvider, CustomAuthorizationPolicyProvider>();
+
+        // If you want to use authorization like [Authorize, Authorize("ApiKey")] for JWT & ApiKey both with different Attributes
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(Auth.ApiKeyPolicy, policy =>
+            {
+                policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+                policy.AddRequirements(new ApiKeyRequirement());
+            });
+        });
+
+        services.AddScoped<IAuthorizationHandler, ApiKeyHandler>();
+        services.AddScoped<ApiKeyEndpointFilter>();
+
+        services.Configure<IdentityOptions>(options =>
+        {
+            // Password settings.
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequiredLength = 6;
+            options.Password.RequiredUniqueChars = 1;
+
+            // Lockout settings.
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(Convert.ToInt32(configuration["JwtSettings:UserLockoutMinutes"]));
+            options.Lockout.MaxFailedAccessAttempts = 4;
+            options.Lockout.AllowedForNewUsers = true;
+
+            // User settings.
+            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+            options.User.RequireUniqueEmail = true;
+        });
+
+        //Adding Authentication - JWT
+        services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+
+                    // options.DefaultScheme = "Cookies";
+                    // options.DefaultChallengeScheme = "OAuth2";
+                })
+                .AddCookie("Cookies") // Cookie authentication for storing user sessions
+                .AddJwtBearer(options =>
+                {
+                    options.SaveToken = false;
+                    options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        RequireExpirationTime = true,
+                        ClockSkew = TimeSpan.Zero,
+                        ValidIssuer = configuration["JwtSettings:Issuer"],
+                        ValidAudience = configuration["JwtSettings:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:Key"]!))
+                    };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnAuthenticationFailed = context =>
+                        {
+                            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                            {
+                                context.Response.Headers.TryAdd("Token-Expired", "true");
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+        // .AddOAuth("OAuth2", options =>
+        // {
+        //     options.ClientId = "your-client-id";
+        //     options.ClientSecret = "your-client-secret";
+        //     options.CallbackPath = "/signin-oauth"; // Redirect URL after authentication
+        //     options.AuthorizationEndpoint = "https://example.com/oauth/authorize";
+        //     options.TokenEndpoint = "https://example.com/oauth/token";
+        //     options.UserInformationEndpoint = "https://example.com/oauth/userinfo";
+        //
+        //     // Define requested scopes
+        //     options.Scope.Add("read");
+        //     options.Scope.Add("write");
+        //
+        //     // Map user claims from OAuth provider response
+        //     options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
+        //     options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
+        //     options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+        //
+        //     // Save tokens (optional)
+        //     options.SaveTokens = true;
+        //
+        //     options.Events = new OAuthEvents
+        //     {
+        //         OnCreatingTicket = async context =>
+        //         {
+        //             // Example: Fetch user info from provider
+        //             var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+        //             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+        //
+        //             var response = await context.Backchannel.SendAsync(request);
+        //             if (response.IsSuccessStatusCode)
+        //             {
+        //                 var user = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        //                 context.RunClaimActions(user.RootElement);
+        //             }
+        //         }
+        //     };
+        // });
+
+        return services;
+    }
+}
