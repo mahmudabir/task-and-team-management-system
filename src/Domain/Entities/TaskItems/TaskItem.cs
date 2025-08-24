@@ -17,6 +17,6 @@ public class TaskItem : Entity
     public string CreatedByUserId { get; set; }
     public ApplicationUser? CreatedByUser { get; set; }
 
-    public string TeamId { get; set; }
+    public long TeamId { get; set; }
     public Team? Team { get; set; }
 }
