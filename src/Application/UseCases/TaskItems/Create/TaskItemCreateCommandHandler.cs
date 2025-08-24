@@ -61,6 +61,13 @@ public class TaskItemCreateCommandHandler(IValidator<TaskItemCreateCommand> vali
             return Result<TaskItemViewModel>.Error(UserErrors.Unauthorized());
         }
 
+        if (task.TeamId != user.TeamId)
+        {
+            return Result<TaskItemViewModel>.Error(UserErrors.Unauthorized())
+                                            .WithErrorMessage("You can only create tasks for your own team.");
+        }
+
+        task.CreatedByUserId = user.Id;
         task.CreatedByUserId = user.Id;
         await repository.AddAsync(task, ct);
         await repository.SaveChangesAsync(ct);
