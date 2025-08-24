@@ -24,5 +24,5 @@ public class User
 
     public bool IsLocked { get; set; }
 
-    public long TeamId { get; set; }
+    public long? TeamId { get; set; }
 }

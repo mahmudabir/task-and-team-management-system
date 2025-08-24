@@ -16,8 +16,8 @@ public class TaskItemUpdateStatusCommandHandler(ITaskItemRepository repository, 
 {
     public override async Task<Result<bool>> ValidateAsync(TaskItemUpdateStatusCommand command, CqrsContext context, CancellationToken ct = default)
     {
-        var username = httpContextService.GetCurrentUserIdentity();
-        var user = await userManager.FindByNameAsync(username);
+        var userId = httpContextService.GetCurrentUserIdentity();
+        var user = await userManager.FindByIdAsync(userId);
         if (!await repository.ExistsByAsync(x => x.Id == command.Id && x.AssignedToUserId == user.Id, false, ct))
         {
             return Result<bool>.Error()
@@ -36,7 +36,7 @@ public class TaskItemUpdateStatusCommandHandler(ITaskItemRepository repository, 
         var count = await repository.SaveChangesAsync(ct);
 
         return Result<bool>.Success()
-                           .WithPayload(count > 0)
-                           .WithMessage(count > 0 ? "Updated successfully." : "Update failed.");
+                           .WithPayload(true)
+                           .WithMessage("Updated successfully.");
     }
 }

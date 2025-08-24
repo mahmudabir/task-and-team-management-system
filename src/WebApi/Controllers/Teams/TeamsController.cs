@@ -84,6 +84,23 @@ public class TeamsController(IServiceProvider services) : ControllerBase
         return Ok(result);
     }
 
+    [HttpPut("{id:long}/users")]
+    [Authorize]
+    public async Task<ActionResult<Team>> AssignUsers([FromRoute] long id,
+                                              [FromBody] List<string> payload,
+                                              CancellationToken cancellationToken)
+    {
+        var executor = CqrsBuilder.Command<TeamAssignUserCommand, bool>(services)
+                                  .WithCommand(new(payload)
+                                  {
+                                      Id = id
+                                  })
+                                  .Build();
+
+        var result = await executor.ExecuteAsync(cancellationToken);
+        return Ok(result);
+    }
+
     [HttpDelete("{id:long}")]
     [Authorize]
     public async Task<ActionResult<bool>> Delete([FromRoute] long id,

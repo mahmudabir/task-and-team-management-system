@@ -9,6 +9,7 @@ using Domain.Entities.TaskItems;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using Shared.Enums;
 using Shared.Models.TaskItems;
 using Shared.Pagination;
 
@@ -89,10 +90,10 @@ public class TasksController(IServiceProvider services) : ControllerBase
     [HttpPut("{id:long}/status")]
     [Authorize(Roles = "Employee")]
     public async Task<ActionResult<Task>> UpdateStatus([FromRoute] long id,
-                                                       [FromQuery] TaskStatus status,
+                                                       [FromQuery] TaskItemStatus status,
                                                        CancellationToken cancellationToken)
     {
-        var executor = CqrsBuilder.Command<TaskItemUpdateStatusCommand, Task>(services)
+        var executor = CqrsBuilder.Command<TaskItemUpdateStatusCommand, bool>(services)
                                   .WithCommand(new(status)
                                   {
                                       Id = id

@@ -11,8 +11,6 @@ namespace Application.UseCases.Teams.Get;
 [Description("Search Teams query")]
 public class TeamGetQuery : IQuery
 {
-    public string? Q { get; set; }
-
     public Pageable Pageable { get; set; }
     public Sortable Sortable { get; set; }
 }

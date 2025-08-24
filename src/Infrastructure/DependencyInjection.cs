@@ -6,7 +6,6 @@ using Domain.Abstractions.Database.Repositories;
 using Domain.Abstractions.Services;
 using Domain.Entities.Users;
 
-using Infrastructure.Authentication;
 using Infrastructure.Database;
 using Infrastructure.Database.Users;
 using Infrastructure.Services;
@@ -168,17 +167,8 @@ public static class DependencyInjection
 
     private static IServiceCollection AddAuthorizationInternal(this IServiceCollection services, IConfiguration configuration)
     {
-        // Add services to the container. 
-
-        // // If you want to use authorization like [Authorize("ApiKey")] for JWT & ApiKey both with 1 Attribute
-        // services.AddAuthorization();
-        // services.AddSingleton<IAuthorizationPolicyProvider, CustomAuthorizationPolicyProvider>();
-
-        // If you want to use authorization like [Authorize, Authorize("ApiKey")] for JWT & ApiKey both with different Attributes
+        // Add services to the container.
         services.AddAuthorization();
-
-        services.AddScoped<IAuthorizationHandler, ApiKeyHandler>();
-        services.AddScoped<ApiKeyEndpointFilter>();
 
         services.Configure<IdentityOptions>(options =>
         {
@@ -240,44 +230,6 @@ public static class DependencyInjection
                         }
                     };
                 });
-        // .AddOAuth("OAuth2", options =>
-        // {
-        //     options.ClientId = "your-client-id";
-        //     options.ClientSecret = "your-client-secret";
-        //     options.CallbackPath = "/signin-oauth"; // Redirect URL after authentication
-        //     options.AuthorizationEndpoint = "https://example.com/oauth/authorize";
-        //     options.TokenEndpoint = "https://example.com/oauth/token";
-        //     options.UserInformationEndpoint = "https://example.com/oauth/userinfo";
-        //
-        //     // Define requested scopes
-        //     options.Scope.Add("read");
-        //     options.Scope.Add("write");
-        //
-        //     // Map user claims from OAuth provider response
-        //     options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
-        //     options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
-        //     options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
-        //
-        //     // Save tokens (optional)
-        //     options.SaveTokens = true;
-        //
-        //     options.Events = new OAuthEvents
-        //     {
-        //         OnCreatingTicket = async context =>
-        //         {
-        //             // Example: Fetch user info from provider
-        //             var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
-        //             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
-        //
-        //             var response = await context.Backchannel.SendAsync(request);
-        //             if (response.IsSuccessStatusCode)
-        //             {
-        //                 var user = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        //                 context.RunClaimActions(user.RootElement);
-        //             }
-        //         }
-        //     };
-        // });
 
         return services;
     }

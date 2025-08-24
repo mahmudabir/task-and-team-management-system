@@ -1,3 +1,5 @@
+using Shared.Enums;
+
 namespace Shared.Models.TaskItems;
 
 public class TaskItemViewModel
@@ -7,13 +9,13 @@ public class TaskItemViewModel
     public string Title { get; set; }
     public string Description { get; set; }
 
-    public TaskStatus Status { get; set; }
+    public TaskItemStatus Status { get; set; }
 
-    public DateOnly DueDate { get; set; }
+    public DateTime DueDate { get; set; }
 
     public string AssignedToUserId { get; set; }
 
     public string CreatedByUserId { get; set; }
 
-    public string TeamId { get; set; }
+    public long TeamId { get; set; }
 }

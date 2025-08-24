@@ -9,7 +9,10 @@ public class TeamCreateValidator : AbstractValidator<TeamCreateCommand>
         // Attributes in the model are for EF Core and DbContext validation. not for FluentValidation
 
         // RuleFor methods are for FluentValidation
-        RuleFor(x => x.Payload).NotNull();
-        RuleFor(x => x.Payload.Id).Empty();
+        RuleFor(x => x.Payload).NotNull()
+                               .DependentRules(() =>
+                               {
+                                   RuleFor(x => x.Payload.Id).Empty();
+                               });
     }
 }

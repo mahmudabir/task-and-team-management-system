@@ -1,15 +1,17 @@
 ﻿using Domain.Entities.Teams;
 using Domain.Entities.Users;
 
+using Shared.Enums;
+
 namespace Domain.Entities.TaskItems;
 
 public class TaskItem : Entity
 {
     public string Title { get; set; }
     public string Description { get; set; }
-    public TaskStatus Status { get; set; }
+    public TaskItemStatus Status { get; set; }
 
-    public DateOnly DueDate { get; set; }
+    public DateTime DueDate { get; set; }
 
     public string AssignedToUserId { get; set; }
     public ApplicationUser? AssignedToUser { get; set; }

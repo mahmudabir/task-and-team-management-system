@@ -22,7 +22,7 @@ public class TaskItemGetByIdQueryHandler(ITaskItemRepository repository, UserMan
     public override async Task<Result<TaskItemViewModel>> HandleAsync(TaskItemGetByIdQuery query, CqrsContext context, CancellationToken ct = default)
     {
         var roles = httpContextService.GetCurrentUserRoles();
-        var username = httpContextService.GetCurrentUserIdentity();
+        var userId = httpContextService.GetCurrentUserIdentity();
 
         TaskItem? data;
 
@@ -39,7 +39,7 @@ public class TaskItemGetByIdQueryHandler(ITaskItemRepository repository, UserMan
 
         if (roles.Contains("Manager"))
         {
-            var manager = await userManager.FindByNameAsync(username);
+            var manager = await userManager.FindByIdAsync(userId);
             data = await repository.GetAsync(x => x.Id == query.Id && x.CreatedByUserId == manager.Id, true, ct);
             if (data is not null)
             {
@@ -51,7 +51,7 @@ public class TaskItemGetByIdQueryHandler(ITaskItemRepository repository, UserMan
 
         if (roles.Contains("Employee"))
         {
-            var employee = await userManager.FindByNameAsync(username);
+            var employee = await userManager.FindByIdAsync(userId);
             data = await repository.GetAsync(x => x.Id == query.Id && x.AssignedToUserId == employee.Id, true, ct);
             if (data is not null)
             {

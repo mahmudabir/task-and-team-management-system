@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 
+using Shared.Enums;
 using Shared.Pagination;
 
 using Softoverse.CqrsKit.Attributes;
@@ -11,10 +12,10 @@ namespace Application.UseCases.TaskItems.Get;
 [Description("Search TaskItem query")]
 public class TaskItemGetQuery : IQuery
 {
-    public TaskStatus? Status { get; set; }
+    public TaskItemStatus? Status { get; set; }
     public string? AssignedTo { get; set; }
     public string? TeamName { get; set; }
-    public DateOnly? DueDate { get; set; }
+    public DateTime? DueDate { get; set; }
 
     public Pageable Pageable { get; set; }
     public Sortable Sortable { get; set; }

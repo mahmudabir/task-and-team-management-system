@@ -143,7 +143,7 @@ public class UsersOldController(ApplicationDbContext context, UserManager<Applic
 
         var errorAdditionalProp = new KeyValuePair<string, List<string>>("error", []);
 
-        var user = await userManager.FindByNameAsync(username);
+        var user = await userManager.FindByIdAsync(username);
 
         if (user == null)
         {

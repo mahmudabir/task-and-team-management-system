@@ -1,6 +1,8 @@
-﻿using FluentValidation;
+﻿using Application.UseCases.Teams.Create;
 
-namespace Application.UseCases.Teams.Create;
+using FluentValidation;
+
+namespace Application.UseCases.Users.Create;
 
 public class ApplicationUserCreateValidator : AbstractValidator<UserCreateCommand>
 {
@@ -9,7 +11,10 @@ public class ApplicationUserCreateValidator : AbstractValidator<UserCreateComman
         // Attributes in the model are for EF Core and DbContext validation. not for FluentValidation
 
         // RuleFor methods are for FluentValidation
-        RuleFor(x => x.Payload).NotNull();
-        RuleFor(x => x.Payload.Id).Empty();
+        RuleFor(x => x.Payload).NotNull()
+                               .DependentRules(() =>
+                               {
+                                   RuleFor(x => x.Payload.Id).Empty();
+                               });
     }
 }

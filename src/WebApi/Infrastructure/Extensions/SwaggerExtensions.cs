@@ -52,16 +52,6 @@ public static class SwaggerExtensions
                 }
             });
 
-            // Add API Key Authentication to Swagger
-            c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
-            {
-                Description = "API Key Authentication",
-                Name = "X-API-KEY",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "ApiKey"
-            });
-
             c.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {

@@ -25,7 +25,7 @@ public class TaskItemGetQueryHandler(ITaskItemRepository repository, UserManager
     public override async Task<Result<PagedData<TaskItemViewModel>>> HandleAsync(TaskItemGetQuery query, CqrsContext context, CancellationToken ct = default)
     {
         var roles = httpContextService.GetCurrentUserRoles();
-        var username = httpContextService.GetCurrentUserIdentity();
+        var userId = httpContextService.GetCurrentUserIdentity();
         Expression<Func<TaskItem, bool>> predicate = x => (query.Status == null) || (x.Status == query.Status)
                                                                                  || (query.AssignedTo == null) || x.AssignedToUser.UserName == query.AssignedTo
                                                                                  || (query.TeamName == null) || x.Team.Name == query.TeamName
@@ -39,17 +39,17 @@ public class TaskItemGetQueryHandler(ITaskItemRepository repository, UserManager
         }
         else if (roles.Contains("Manager"))
         {
-            var manager = await userManager.FindByNameAsync(username);
+            var manager = await userManager.FindByIdAsync(userId);
             predicate = x => x.TeamId == manager.TeamId
                           || (query.Status == null) || (x.Status == query.Status)
-                          || (query.AssignedTo == null) || x.AssignedToUser.UserName == query.AssignedTo
+                          || (query.AssignedTo == null) || (x.AssignedToUserId == query.AssignedTo)
                           || (query.DueDate == null) || x.DueDate == query.DueDate;
 
             data = await repository.GetAllPagedAsync<TaskItem>(predicate, query.Pageable, query.Sortable, true, ct);
         }
         else if (roles.Contains("Employee"))
         {
-            var employee = await userManager.FindByNameAsync(username);
+            var employee = await userManager.FindByIdAsync(userId);
             predicate = x => x.TeamId == employee.TeamId && x.AssignedToUserId == employee.Id
                           || (query.Status == null) || (x.Status == query.Status)
                           || (query.DueDate == null) || x.DueDate == query.DueDate;

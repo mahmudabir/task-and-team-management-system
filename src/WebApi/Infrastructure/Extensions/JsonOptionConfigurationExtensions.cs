@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 
 using Microsoft.AspNetCore.Http.Json;
 
+using WebApi.Infrastructure.JsonSerializers;
+
 namespace WebApi.Infrastructure.Extensions;
 
 public static class JsonOptionConfigurationExtensions
@@ -11,7 +13,16 @@ public static class JsonOptionConfigurationExtensions
     public static void AddJsonOptions(this IServiceCollection services)
     {
         IList<JsonConverter> jsonConverters = [
-            new JsonStringEnumConverter()
+            new JsonStringEnumConverter(),
+            new DefaultValueNumberConverter<long>(),
+            new DefaultValueNumberConverter<double>(),
+            new DefaultValueNumberConverter<float>(),
+            new DefaultValueNumberConverter<decimal>(),
+            new DefaultValueNumberConverter<int?>(),
+            new DefaultValueNumberConverter<long?>(),
+            new DefaultValueNumberConverter<double?>(),
+            new DefaultValueNumberConverter<float?>(),
+            new DefaultValueNumberConverter<decimal?>(),
         ];
 
         Action<JsonOptions> jsonConfigureOptions = (options) =>

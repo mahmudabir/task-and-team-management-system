@@ -13,9 +13,9 @@ using Softoverse.CqrsKit.Models.Utility;
 namespace Application.UseCases.Users.Delete;
 
 [ScopedLifetime]
-public class UserReactivateCommandHandler(UserManager<ApplicationUser> userManager) : CommandHandler<UserDeactivateCommand, bool>
+public class UserReactivateCommandHandler(UserManager<ApplicationUser> userManager) : CommandHandler<UserReactivateCommand, bool>
 {
-    public override async Task<Result<bool>> HandleAsync(UserDeactivateCommand command, CqrsContext context, CancellationToken ct = default)
+    public override async Task<Result<bool>> HandleAsync(UserReactivateCommand command, CqrsContext context, CancellationToken ct = default)
     {
         var user = await userManager.Users.FirstOrDefaultAsync(x => x.UserName == command.Payload, ct);
         await userManager.ResetAccessFailedCountAsync(user!);

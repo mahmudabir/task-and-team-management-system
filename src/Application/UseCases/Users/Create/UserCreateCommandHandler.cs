@@ -63,6 +63,8 @@ public class ApplicationUserCreateCommandHandler(
             UserName = command.Payload.Username,
             Email = command.Payload.Email,
             PhoneNumber = command.Payload.PhoneNumber,
+            FullName = command.Payload.FullName,
+            TeamId = command.Payload.TeamId,
         };
 
         command.Payload.Roles ??= [];

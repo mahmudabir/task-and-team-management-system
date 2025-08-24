@@ -24,7 +24,7 @@ public class UserUpdateCommandHandler(UserManager<ApplicationUser> userManager, 
         var username = command.Username;
         var userRegistration = command.Payload;
 
-        var user = await userManager.FindByNameAsync(command.Username);
+        var user = await userManager.FindByIdAsync(command.Username);
 
         if (user == null)
         {
@@ -42,9 +42,6 @@ public class UserUpdateCommandHandler(UserManager<ApplicationUser> userManager, 
             return Result<User>.Error()
                                .WithMessage("Username cannot be changed.");
         }
-
-        user.Email = userRegistration.Email;
-        user.PhoneNumber = userRegistration.PhoneNumber;
 
         userRegistration.Roles ??= [];
 
@@ -88,6 +85,10 @@ public class UserUpdateCommandHandler(UserManager<ApplicationUser> userManager, 
         var errorAdditionalProp = new KeyValuePair<string, List<string>>("error", []);
 
         var user = context.GetItem<ApplicationUser>("User");
+        user.Email = userRegistration.Email;
+        user.PhoneNumber = userRegistration.PhoneNumber;
+        user.FullName = userRegistration.FullName;
+        user.TeamId = userRegistration.TeamId;
 
         var userResult = await userManager.UpdateAsync(user);
 

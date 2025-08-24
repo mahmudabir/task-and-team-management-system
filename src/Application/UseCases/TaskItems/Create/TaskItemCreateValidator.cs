@@ -9,9 +9,13 @@ public class TaskItemCreateValidator : AbstractValidator<TaskItemCreateCommand>
         // Attributes in the model are for EF Core and DbContext validation. not for FluentValidation
 
         // RuleFor methods are for FluentValidation
-        RuleFor(x => x.Payload).NotNull();
-        RuleFor(x => x.Payload.Id).Empty();
-        RuleFor(x => x.Payload.Title).NotEmpty();
-        RuleFor(x => x.Payload.Description).NotEmpty();
+        RuleFor(x => x.Payload).NotNull()
+                               .DependentRules(() =>
+                               {
+                                   // These only execute if Payload is not null
+                                   // RuleFor(x => x.Payload.Id).Null();
+                                   RuleFor(x => x.Payload.Title).NotEmpty();
+                                   RuleFor(x => x.Payload.Description).NotEmpty();
+                               });
     }
 }

@@ -19,7 +19,7 @@ public class TeamGetQueryHandler(ITeamRepository repository, IHttpContextService
 {
     public override async Task<Result<PagedData<TeamViewModel>>> HandleAsync(TeamGetQuery query, CqrsContext context, CancellationToken ct = default)
     {
-        PagedData<Team> data = await repository.GetAllPagedAsync(x=>true, query.Pageable, query.Sortable, true, ct);
+        PagedData<Team> data = await repository.GetAllPagedAsync(x => true, query.Pageable, query.Sortable, true, ct);
 
         var payload = new PagedData<TeamViewModel>(data)
         {
