@@ -175,14 +175,7 @@ public static class DependencyInjection
         // services.AddSingleton<IAuthorizationPolicyProvider, CustomAuthorizationPolicyProvider>();
 
         // If you want to use authorization like [Authorize, Authorize("ApiKey")] for JWT & ApiKey both with different Attributes
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy(Auth.ApiKeyPolicy, policy =>
-            {
-                policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
-                policy.AddRequirements(new ApiKeyRequirement());
-            });
-        });
+        services.AddAuthorization();
 
         services.AddScoped<IAuthorizationHandler, ApiKeyHandler>();
         services.AddScoped<ApiKeyEndpointFilter>();

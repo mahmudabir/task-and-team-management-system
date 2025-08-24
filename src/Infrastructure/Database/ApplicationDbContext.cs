@@ -10,8 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
-using Task = System.Threading.Tasks.Task;
-
 namespace Infrastructure.Database;
 
 public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,

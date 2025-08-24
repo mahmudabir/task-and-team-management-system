@@ -11,7 +11,7 @@ public class ApplicationUser : IdentityUser
 {
     public string FullName { get; set; }
 
-    public long TeamId { get; set; }
+    public long? TeamId { get; set; }
     public Team? Team { get; set; }
 
     [NotMapped]

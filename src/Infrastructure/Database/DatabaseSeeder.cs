@@ -68,6 +68,7 @@ public static class DatabaseSeeder
             Email = adminOptions.Email,
             NormalizedEmail = adminOptions.Email?.ToUpper(),
             PhoneNumber = adminOptions.PhoneNumber?.ToUpper(),
+            FullName = adminOptions.FullName,
             EmailConfirmed = true,
             PhoneNumberConfirmed = true,
             LockoutEnabled = false,
@@ -112,7 +113,7 @@ public static class DatabaseSeeder
         }
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var managerOptions = scope.ServiceProvider.GetRequiredService<IOptions<AdminSettings>>().Value;
+        var managerOptions = scope.ServiceProvider.GetRequiredService<IOptions<ManagerSettings>>().Value;
 
         var managerUser = new ApplicationUser
         {
@@ -121,6 +122,7 @@ public static class DatabaseSeeder
             Email = managerOptions.Email,
             NormalizedEmail = managerOptions.Email?.ToUpper(),
             PhoneNumber = managerOptions.PhoneNumber?.ToUpper(),
+            FullName = managerOptions.FullName,
             EmailConfirmed = true,
             PhoneNumberConfirmed = true,
             LockoutEnabled = false,
@@ -166,7 +168,7 @@ public static class DatabaseSeeder
         }
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var employeeOptions = scope.ServiceProvider.GetRequiredService<IOptions<AdminSettings>>().Value;
+        var employeeOptions = scope.ServiceProvider.GetRequiredService<IOptions<EmployeeSettings>>().Value;
 
         var employeeUser = new ApplicationUser
         {
@@ -175,6 +177,7 @@ public static class DatabaseSeeder
             Email = employeeOptions.Email,
             NormalizedEmail = employeeOptions.Email?.ToUpper(),
             PhoneNumber = employeeOptions.PhoneNumber?.ToUpper(),
+            FullName = employeeOptions.FullName,
             EmailConfirmed = true,
             PhoneNumberConfirmed = true,
             LockoutEnabled = false,
