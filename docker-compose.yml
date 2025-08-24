@@ -1,0 +1,11 @@
+services:
+  webapi:
+    container_name: task-team-management-webapi
+    ports:
+      - "5000:5000"
+    image: ${DOCKER_REGISTRY-}webapi
+    build:
+      context: .
+      dockerfile: src/WebApi/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
